@@ -23,7 +23,14 @@ fn fix_private_use_ibm_ext(_encoder: &mut dyn RawEncoder, input: &str, output: &
                         output.write_bytes(&o.to_be_bytes());
                     },)*
                     _ => {
-                        return false;
+                        if _encoder.is_ascii_compatible() { // optimization!
+                            output.write_bytes(input.as_bytes());
+                        } else {
+                            let (_, err) = _encoder.raw_feed(input, output);
+                            if err.is_some() {
+                                panic!("{} cannot reencode a replacement string", "Call(fix_private_use_ibm_ext)");
+                            }
+                        }
                     }
                 }
             };
@@ -84,10 +91,16 @@ mod tests {
     #[test]
     fn case2() {
         let bake = "繩Å據樞攅繻ｹ繧ｯ繝ｩ繧､";
-        println!("{:X?}", bake.chars().map(|c| c as u32).collect::<Vec<_>>());
+        // println!("{:X?}", bake.chars().map(|c| c as u32).collect::<Vec<_>>());
         let text = "㊁𝟞❷㌹クライ";
-        println!("{:x?}", text.as_bytes());
+        // println!("{:x?}", text.as_bytes());
         assert_eq!(bakefix(bake), text);
+    }
+
+    #[test]
+    fn case3() {
+        let bake = "縺薙■繧峨°繧峨?繝｡繝ｼ繝ｫ繧偵??蜿励￠蜿悶▲縺溘ｉ莉悶??縺ｮ蜈ｱ蜑ｵ閠???驕斐→蜈ｱ譛峨＠縺ｦ谺ｲ縺励＞縲";
+        println!("{}", bakefix(bake));
     }
 
 }
