@@ -23,6 +23,7 @@ fn fix_private_use_ibm_ext(_encoder: &mut dyn RawEncoder, input: &str, output: &
                         output.write_bytes(&o.to_be_bytes());
                     },)*
                     _ => {
+                        // copied from EncoderTrap::Replace 
                         if _encoder.is_ascii_compatible() { // optimization!
                             output.write_bytes(input.as_bytes());
                         } else {
